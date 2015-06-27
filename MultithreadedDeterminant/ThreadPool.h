@@ -3,7 +3,7 @@
 #include <vector>
 #include <cassert>
 #include <memory>
-#include "BlockingQueue.h"
+#include "ThreadSafeQueue.h"
 
 #include <iostream>
 
@@ -29,8 +29,9 @@ public:
 
 
 private:
-	BlockingQueue<std::unique_ptr<Task>> m_Tasks;
+	ThreadSafeQueue<std::unique_ptr<Task>> m_Tasks;
 	std::vector<std::thread> m_Threads;
+	unsigned m_ThreadCount;
 	bool m_PendingTermination;
 
 	void RunThread();

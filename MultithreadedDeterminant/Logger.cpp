@@ -26,6 +26,12 @@ void Logger::Info(const std::string& message)
 		std::cout << message << std::endl;
 	}
 }
+
+void Logger::ImportantInfo(const std::string& message)
+{
+	std::cout << message << std::endl;
+}
+
 void Logger::Error(const std::string& error)
 {
 	std::cerr << error << std::endl;

@@ -85,7 +85,7 @@ double* GenerateRandomMatrix(unsigned size)
 	std::uniform_real_distribution<> uniformDistribution(0.0, 1.0);
 	for (unsigned i = 0; i < sizeSquared; i++)
 	{
-		matrix[i] = uniformDistribution(generator);
+		matrix[i] = i * i * 1e-7; //uniformDistribution(generator);
 	}
 	return matrix.release();
 }

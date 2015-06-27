@@ -5,7 +5,7 @@
 #include <mutex>
 
 template<class T>
-class BlockingQueue
+class ThreadSafeQueue
 {
 private:
 	std::queue<T> m_Queue;

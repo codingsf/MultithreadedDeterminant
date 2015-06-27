@@ -3,7 +3,10 @@
 #include "Helpers.h"
 #include "Logger.h"
 
-const unsigned ComputeCofactorTask::PRECISION = 500;
+#include <mutex>
+
+const unsigned ComputeCofactorTask::PRECISION = 128;
+static std::mutex g_Mutex;
 
 ComputeCofactorTask::ComputeCofactorTask(double* matrix, unsigned size,
 	unsigned row, unsigned col, std::vector<mpf_class>& answerStorage)
@@ -59,22 +62,24 @@ void ComputeCofactorTask::Solve()
 	{
 		permutation.push_back(i);
 	}
-	mpf_class detMinor(0, PRECISION);
+	mpf_class result(0, PRECISION);
+	mpf_class permutationProduct(1, PRECISION);
 	do
 	{
 		int permutationParity = ComputePermutationParity(permutation);
-		mpf_class permutationProduct(1, PRECISION);
+		permutationProduct = 1;
 		for (auto i = 0u; i < m_Size; ++i)
 		{
 			permutationProduct *= GetElementAtMinor(i, permutation[i]);
 		}
-		Logger::Instance().Info("Permutation product: " + Helpers::PrintMpfNumber(permutationProduct));
-		detMinor += permutationParity * permutationProduct;
+		result += permutationParity * permutationProduct;
 	} while (std::next_permutation(permutation.begin(), permutation.end()));
 	// m_Row & m_Col are unsigned so we need a cast to get the actual sign
 	double cofactorSign = static_cast<int>(((m_Row + m_Col) % 2) * (-2) + 1);
 
-	mpf_class result(0, PRECISION);
-	result = cofactorSign * m_Matrix[m_Row * m_MatrixSize + m_Col] * detMinor;
-	m_AnswerStorage.push_back(result);
+	result = cofactorSign * m_Matrix[m_Row * m_MatrixSize + m_Col] * result;
+	{
+		std::lock_guard<std::mutex> lock(g_Mutex);
+		m_AnswerStorage.push_back(result);
+	}
 }

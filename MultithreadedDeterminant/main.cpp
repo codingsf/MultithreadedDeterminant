@@ -11,11 +11,7 @@ int main(int argc, char** argv)
 {
 	using namespace std;
 
-	mpf_set_default_prec(ComputeCofactorTask::PRECISION);
-
-	auto results = Helpers::ParseMatrixFromFile("input.txt");
-
-	vector<ArgumentDefinition> validArguments = 
+	vector<ArgumentDefinition> validArguments =
 	{
 		{ "n", true, "\\d+" },
 		{ "i", true, "" },
@@ -47,6 +43,10 @@ int main(int argc, char** argv)
 	else if (arguments.find("i") != arguments.end())
 	{
 		auto results = Helpers::ParseMatrixFromFile(arguments.find("i")->second);
+		if (results.second == 0)
+		{
+			return -1;
+		}
 		matrix.reset(results.first);
 		size = results.second;
 	}
@@ -63,15 +63,16 @@ int main(int argc, char** argv)
 	}
 
 	ThreadPool pool(threadCount);
-
-	auto beforeComputation = chrono::high_resolution_clock::now();
 	std::vector<mpf_class> answerStorage;
+	answerStorage.reserve(size);
 	for (auto i = 0u; i < size; ++i)
 	{
 		pool.AddTask(new ComputeCofactorTask(matrix.get(), size, 0, i, answerStorage));
 	}
-	pool.FinishWork();
 
+	auto beforeComputation = chrono::high_resolution_clock::now();
+
+	pool.FinishWork();
 	mpf_class det(0, ComputeCofactorTask::PRECISION);
 	for (auto& detMinor : answerStorage)
 	{
@@ -79,18 +80,15 @@ int main(int argc, char** argv)
 	}
 
 	auto timeDistance = chrono::high_resolution_clock::now() - beforeComputation;
-	auto totalRunningTime = chrono::duration_cast<chrono::microseconds>(timeDistance).count();
+	auto totalRunningTime = chrono::duration_cast<chrono::milliseconds>(timeDistance).count();
 
 	Logger::Instance().Info("Final Result: ");
-	Logger::Instance().Info(Helpers::PrintMpfNumber(det));;
+	Logger::Instance().ImportantInfo(Helpers::PrintMpfNumber(det));;
 
-	Logger::Instance().Info("Total Running Time: ");
-	Logger::Instance().Info(to_string(totalRunningTime));
+	Logger::Instance().ImportantInfo("Total Running Time: " + to_string(totalRunningTime));
 
 	if (arguments.find("o") != arguments.end())
 	{
 		Helpers::WriteResultToFile(arguments["o"], det);
 	}
-	int y;
-	std::cin >> y;
 }
