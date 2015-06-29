@@ -10,7 +10,7 @@ class ComputeCofactorTask : public Task
 {
 public:
 	ComputeCofactorTask(double* matrix, unsigned size,
-		unsigned row, unsigned col, std::vector<mpf_class>& answerStorage);
+		unsigned row, unsigned col, mpf_class& globalResult);
 
 	virtual void Solve() override;
 	static const unsigned PRECISION;
@@ -25,7 +25,7 @@ private:
 	unsigned m_Row;
 	unsigned m_Col;
 
-	std::vector<mpf_class>& m_AnswerStorage;
+	mpf_class& m_GlobalResult;
 
 	DynamicBitset m_Visited;
 };

@@ -63,32 +63,26 @@ int main(int argc, char** argv)
 	}
 
 	ThreadPool pool(threadCount);
-	std::vector<mpf_class> answerStorage;
-	answerStorage.reserve(size);
+	mpf_class determinant(0, ComputeCofactorTask::PRECISION);
 	for (auto i = 0u; i < size; ++i)
 	{
-		pool.AddTask(new ComputeCofactorTask(matrix.get(), size, 0, i, answerStorage));
+		pool.AddTask(new ComputeCofactorTask(matrix.get(), size, 0, i, determinant));
 	}
 
 	auto beforeComputation = chrono::high_resolution_clock::now();
 
 	pool.FinishWork();
-	mpf_class det(0, ComputeCofactorTask::PRECISION);
-	for (auto& detMinor : answerStorage)
-	{
-		det += detMinor;
-	}
 
 	auto timeDistance = chrono::high_resolution_clock::now() - beforeComputation;
 	auto totalRunningTime = chrono::duration_cast<chrono::milliseconds>(timeDistance).count();
 
 	Logger::Instance().Info("Final Result: ");
-	Logger::Instance().ImportantInfo(Helpers::PrintMpfNumber(det));;
+	Logger::Instance().ImportantInfo(Helpers::PrintMpfNumber(determinant));;
 
 	Logger::Instance().ImportantInfo("Total Running Time: " + to_string(totalRunningTime));
 
 	if (arguments.find("o") != arguments.end())
 	{
-		Helpers::WriteResultToFile(arguments["o"], det);
+		Helpers::WriteResultToFile(arguments["o"], determinant);
 	}
 }

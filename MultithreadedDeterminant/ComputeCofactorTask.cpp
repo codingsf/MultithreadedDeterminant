@@ -9,13 +9,13 @@ const unsigned ComputeCofactorTask::PRECISION = 128;
 static std::mutex g_Mutex;
 
 ComputeCofactorTask::ComputeCofactorTask(double* matrix, unsigned size,
-	unsigned row, unsigned col, std::vector<mpf_class>& answerStorage)
+	unsigned row, unsigned col, mpf_class& globalResult)
 	: m_Matrix(matrix)
 	, m_MatrixSize(size)
 	, m_Size(size - 1)
 	, m_Row(row)
 	, m_Col(col)
-	, m_AnswerStorage(answerStorage)
+	, m_GlobalResult(globalResult)
 	, m_Visited(m_Size)
 {
 }
@@ -80,6 +80,6 @@ void ComputeCofactorTask::Solve()
 	result = cofactorSign * m_Matrix[m_Row * m_MatrixSize + m_Col] * result;
 	{
 		std::lock_guard<std::mutex> lock(g_Mutex);
-		m_AnswerStorage.push_back(result);
+		m_GlobalResult += result;
 	}
 }
